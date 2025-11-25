@@ -1,0 +1,132 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Create Post
+{% endblock title %}
+
+{% block content %}
+
+<style>
+    /* --- Modern Card Styling --- */
+    .create-post-wrapper {
+        max-width: 650px; /* Slightly wider to accommodate large inputs */
+        margin: 50px auto;
+    }
+
+    .create-post-card {
+        background: #ffffff;
+        border-radius: 18px; /* Softer edges */
+        padding: 40px; /* Increased padding */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper, softer shadow */
+        transition: all 0.3s ease;
+    }
+    
+    .create-post-card:hover {
+        transform: translateY(-3px); /* Subtle lift */
+    }
+
+    .create-post-card h2 {
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    /* --- Form Field Styling --- */
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    /* Style for the label above the field */
+    .form-group-custom label {
+        display: block; /* Ensures label takes its own line */
+        font-weight: 600; /* Makes label stand out */
+        margin-bottom: 5px; /* Space between label and field */
+        color: #495057;
+    }
+
+    /* Target input, textarea, and file fields for the curved look */
+    .form-group-custom input:not([type="checkbox"]), 
+    .form-group-custom textarea,
+    .form-group-custom select {
+        /* Applying the curve and standard Bootstrap look */
+        border-radius: 8px !important; /* CURVED CORNERS */
+        padding: 10px 15px; /* Good padding for touch targets */
+        border: 1px solid #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Ensure Textareas have adequate height */
+    .form-group-custom textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    /* Focus state */
+    .form-group-custom input:focus, 
+    .form-group-custom textarea:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* File input specific styling (to maintain the curve) */
+    input[type="file"] {
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    /* Fixing error message spacing */
+    .text-danger {
+        margin-top: 5px;
+    }
+    
+    .btn-create {
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 15px;
+    }
+</style>
+
+<div class="create-post-wrapper">
+    <div class="create-post-card">
+        <h2><i class="bi bi-pencil-square me-2"></i> Create a New Post</h2>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %} 
+            
+            {% for field in form %}
+                <div class="form-group-custom">
+                    
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                        {% endif %}
+                    </label>
+
+                    {{ field }}
+                    
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    
+                    {% if field.help_text %}
+                        <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary btn-create">
+                Publish Post
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

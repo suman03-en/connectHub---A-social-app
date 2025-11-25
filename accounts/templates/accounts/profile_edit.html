@@ -1,0 +1,154 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+    Edit Profile
+{% endblock title %}
+
+{% block content %}
+
+<style>
+    .edit-profile-container {
+        max-width: 600px;
+        margin: 50px auto;
+    }
+
+    .edit-profile-card {
+        background: white;
+        border-radius: 18px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .edit-profile-card h1 {
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .profile-img-preview {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 30px;
+        border: 4px solid #0d6efd;
+        box-shadow: 0 0 0 6px rgba(13, 110, 253, 0.2);
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        transition: all 0.3s ease;
+    }
+
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: inline-block;
+        color: #333;
+    }
+
+    input, textarea, select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+    }
+
+    input[type="checkbox"] {
+        width: auto;
+        margin-right: 8px;
+        transform: scale(1.15);
+    }
+
+    .save-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        margin-top: 15px !important;
+    }
+</style>
+
+<div class="edit-profile-container">
+    <div class="edit-profile-card">
+
+        <h1>Edit Your Profile</h1>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- PROFILE PICTURE PREVIEW -->
+            <div class="text-center mb-4">
+                {% if user.profile_pic %}
+                <img id="profile-preview" src="{{ user.profile_pic.url }}" class="profile-img-preview" alt="Profile Picture Preview">
+                {% else %}
+                <img id="profile-preview" src="/media/accounts/profile/no_profile.jpg" class="profile-img-preview" alt="Default Profile Picture">
+                {% endif %}
+
+                <div class="form-group-custom">
+                    <label>{{ form.profile_pic.label }}</label>
+                    {{ form.profile_pic }}
+                    <small class="form-text text-muted d-block mt-1">
+                        Upload a new image to change your profile picture.
+                    </small>
+                </div>
+            </div>
+
+            <!-- ALL OTHER FIELDS -->
+            {% for field in form %}
+                {% if field.name != 'profile_pic' %}
+                    <div class="form-group-custom">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <small class="text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary save-btn">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageInput = document.getElementById('id_profile_pic');
+        const previewImage = document.getElementById('profile-preview');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock content %}

@@ -1,0 +1,63 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+    Home Feed
+{% endblock title %}
+
+{% block content %}
+
+<style>
+    /* --- Global & Body Reset for Modern Look --- */
+    body {
+        /* Lighter, softer background for less strain and better contrast with white cards */
+        background-color: #f0f2f5 !important; 
+    }
+
+    /* --- Feed Container Styling --- */
+    .feed-container {
+        max-width: 900px; /* Limit overall width for a focused feed */
+        margin: auto;
+        padding-top: 20px;
+        padding-bottom: 50px;
+    }
+
+    /* --- Section Title Enhancement --- */
+    .section-title {
+        text-align: center;
+        font-weight: 700; /* Bolder font */
+        font-size: 2.2rem; /* Larger title */
+        color: #212529; /* Darker, high-contrast text */
+        margin: 30px 0 40px;
+        position: relative;
+    }
+
+    /* Subtle separator line under the title for a clean look */
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 3px;
+        background-color: #0d6efd; /* Primary accent color */
+        margin: 10px auto 0;
+        border-radius: 5px;
+    }
+
+    /* --- Optional: Add a subtle divider if the list.html template doesn't have enough margin between posts --- */
+    /* If you found that posts were too close, you could add:
+    .col-12.col-md-9.col-lg-7.mb-4 {
+        margin-bottom: 30px !important;
+    }
+    */
+</style>
+
+<div class="container feed-container">
+    
+    <h2 class="section-title">
+        <i class="bi bi-house-door-fill me-2"></i> Latest Posts
+    </h2>
+
+    {% include "posts/post/list.html" with posts=posts %}
+
+</div>
+
+{% endblock content %}

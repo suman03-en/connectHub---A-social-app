@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}ConnectHub{% endblock title %}
+    </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        /* --- General Styling and Modern Base --- */
+        :root {
+            --ch-primary: #0d6efd;
+            --ch-secondary: #6c757d;
+            --ch-background: #f0f2f5; /* Soft background */
+        }
+
+        body {
+            background-color: var(--ch-background) !important;
+            padding-top: 65px; /* Space for the fixed navbar */
+            /* Using a common, modern font stack */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+        
+        /* --- Navigation Bar --- */
+        .navbar-custom {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #212529 !important;
+        }
+
+        .navbar-brand i {
+            font-style: normal;
+            color: var(--ch-primary);
+        }
+
+        /* --- User Links and Profile Info --- */
+        .user-link {
+            font-weight: 600;
+            color: var(--ch-secondary) !important;
+            transition: color 0.2s;
+        }
+
+        .user-link:hover {
+            color: var(--ch-primary) !important;
+        }
+
+        .nav-actions .btn {
+            border-radius: 8px; /* Softer buttons */
+            font-weight: 500;
+            padding: 7px 15px;
+        }
+
+        /* --- Main Content Area --- */
+        .content-wrapper {
+            padding-top: 30px;
+            padding-bottom: 50px;
+            min-height: calc(100vh - 120px); /* Ensures content pushes the footer down */
+        }
+
+        /* --- Footer --- */
+        footer {
+            background: #ffffff;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            color: var(--ch-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-link-45deg me-1"></i> connect<i>Hub</i>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <div class="d-flex nav-actions ms-auto align-items-center">
+                    {% if user.is_authenticated %}
+                    
+                        <a href="{% url "profile" user.username %}" class="user-link me-3 d-none d-md-block">
+                            <i class="bi bi-person-circle me-1"></i> Hello, {{ user.first_name }}
+                        </a>
+
+                        <a href="{% url 'logout' %}" class="btn btn-danger btn-sm d-inline-flex align-items-center">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary me-2">Login</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container content-wrapper">
+        {% block content %}
+        {% endblock content %}
+    </div>
+
+    <footer>
+        © {% now "Y" %} connectHub — All rights reserved. Built with ❤️.
+    </footer>
+
+</body>
+</html>

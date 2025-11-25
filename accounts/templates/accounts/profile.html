@@ -1,0 +1,209 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}{{ profile_user.username }}{% endblock title %}
+
+{% block content %}
+<style>
+    /* --- Global & Container --- */
+    body {
+        /* Using soft background from base template */
+        background-color: #f0f2f5 !important; 
+    }
+
+    .profile-container {
+        max-width: 900px; /* Increased max-width for better card spacing */
+        margin: 30px auto;
+    }
+
+    /* --- PROFILE CARD (MODIFIED) --- */
+    .profile-card {
+        background: #fff;
+        border-radius: 18px; /* Softer edges */
+        padding: 40px; /* Increased padding */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Deeper, softer shadow */
+        margin-bottom: 30px;
+        
+        /* Set up the main flex container */
+        display: flex;
+        align-items: center; 
+        gap: 40px; 
+    }
+
+    /* --- Profile Image --- */
+    .profile-img-container {
+        flex-shrink: 0;
+    }
+    .profile-img {
+        width: 140px; /* Slightly larger image */
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #fff; /* White border for contrast */
+        box-shadow: 0 0 0 1px #dee2e6; /* Thin grey outline */
+    }
+
+    /* --- User Info Container (The central flex item) --- */
+    .profile-info-content {
+        flex-grow: 1; /* Allows this column to take up remaining space */
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Name and Username */
+    .profile-name {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+    .profile-username {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+    }
+
+    /* Stats Row (Placed in the center area) */
+    .profile-stats-row {
+        display: flex;
+        gap: 30px;
+        margin: 15px 0;
+        /* Center the stats block if needed, but keeping them left-aligned within the flex-grow content area */
+    }
+
+    .profile-stats-row div {
+        text-align: left;
+    }
+    .profile-stats-row span {
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-right: 5px;
+        color: #212529;
+    }
+    .profile-stats-row small {
+        color: #777;
+    }
+
+    /* Buttons Container (Force to the right) */
+    .profile-actions {
+        /* Uses Bootstrap classes to align buttons to the right */
+        align-self: flex-start; 
+    }
+
+    .btn-round {
+        padding: 8px 25px;
+        border-radius: 10px !important; /* Modern rounded corners */
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    /* Bio and Joined Date */
+    .bio-section {
+        margin-top: 10px;
+    }
+    .bio-section strong {
+        font-weight: 600;
+    }
+
+    /* --- Posts Section --- */
+    .section-title {
+        text-align: center;
+        margin: 40px 0 30px;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #212529;
+        position: relative;
+    }
+    .section-title::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 3px;
+        background-color: #0d6efd;
+        margin: 10px auto 0;
+        border-radius: 5px;
+    }
+    .list-container {
+        max-width: 100%;
+        margin: auto;
+    }
+</style>
+
+<div class="profile-container">
+
+    <div class="profile-card">
+
+        <div class="profile-img-container">
+            {% if profile_user.profile_pic %}
+                <img src="{{ profile_user.profile_pic.url }}" class="profile-img">
+            {% else %}
+                <img src="/media/accounts/profile/no_profile.jpg" class="profile-img">
+            {% endif %}
+        </div>
+
+        <div class="profile-info-content">
+            
+            <div class="d-flex justify-content-between align-items-start w-100">
+                
+                <div>
+                    <h3 class="profile-name">{{ profile_user.first_name }} {{ profile_user.last_name }}</h3>
+                    <div class="profile-username">@{{ profile_user.username }}</div>
+                </div>
+
+                <div class="profile-actions">
+                    {% if request.user != profile_user %}
+                        <form action="{% url 'follow_action' profile_user.username %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="{% if is_following %}unfollow{% else %}follow{% endif %}">
+                            <button type="submit" class="btn btn-primary btn-round">
+                                <i class="bi bi-person-{% if is_following %}dash{% else %}plus{% endif %} me-1"></i>
+                                {% if is_following %}Unfollow{% else %}Follow{% endif %}
+                            </button>
+                        </form>
+                    {% elif request.user == profile_user %}
+                        <a href="{% url 'profile_edit' %}" class="btn btn-outline-secondary btn-round">
+                            <i class="bi bi-gear me-1"></i> Edit Profile
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-stats-row">
+                <div>
+                    <span>{{ profile_user.posts.count }}</span>
+                    <small>posts</small>
+                </div>
+                <div>
+                    <span>{{ profile_user.follower_count }}</span>
+                    <small>followers</small>
+                </div>
+                <div>
+                    <span>{{ profile_user.following_count }}</span>
+                    <small>following</small>
+                </div>
+            </div>
+
+            <div class="bio-section">
+                <p class="mb-1"><strong>Bio:</strong> {{ profile_user.bio|default:"No bio added." }}</p>
+                <small class="text-muted">
+                    <i class="bi bi-calendar me-1"></i> Joined: {{ profile_user.date_joined|date:"M d, Y" }}
+                </small>
+            </div>
+
+        </div>
+    </div>
+
+    {% if request.user == profile_user %}
+        <div class=" mb-4">
+            <a href="{% url 'create_post' %}" class="btn btn-success btn-round">
+                <i class="bi bi-pencil-fill me-2"></i> Create New Post
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+<div class="list-container">
+    <h2 class="section-title">All Posts</h2>
+    {% include "posts/post/list.html" with posts=posts %}
+</div>
+
+{% endblock content %}

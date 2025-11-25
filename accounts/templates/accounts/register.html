@@ -1,0 +1,139 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+Register Account
+{% endblock title %}
+
+{% block content %}
+
+<style>
+    /* --- Modern Card Styling --- */
+    .register-card {
+        max-width: 450px; /* Focus width */
+        margin: 50px auto;
+        border-radius: 18px; /* Softer edges */
+        padding: 40px; /* Increased padding */
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .register-card:hover {
+        transform: translateY(-3px); 
+    }
+
+    .register-card h2 {
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 30px;
+    }
+
+    /* --- Form Field Styling --- */
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+    
+    /* Style for the label above the field */
+    .form-group-custom label {
+        display: block; /* Ensures label takes its own line */
+        font-weight: 600; /* Makes label stand out */
+        margin-bottom: 5px; /* Space between label and field */
+        color: #495057;
+    }
+
+    /* Target the input fields for the curve and control styling */
+    .form-group-custom input:not([type="checkbox"]), 
+    .form-group-custom textarea,
+    .form-group-custom select { /* Added select for completeness */
+        /* Applying the curve and standard Bootstrap look */
+        border-radius: 8px !important; /* CURVED CORNERS */
+        padding: 10px 15px; /* Good padding for touch targets */
+        border: 1px solid #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Focus state */
+    .form-group-custom input:focus, 
+    .form-group-custom textarea:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Fixing error message spacing */
+    .text-danger {
+        margin-top: 5px;
+    }
+    
+    .btn-register {
+        padding: 12px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    .login-link a {
+        font-weight: 600;
+        color: #0d6efd;
+    }
+</style>
+
+<div class="container">
+    <div class="register-card">
+
+        <h2 class="text-center">Create Your Account</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group-custom">
+                    
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                        <div class="form-check">
+                            {{ field }}
+                            <label class="form-check-label" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+
+                        {{ field }}
+                        
+                        {% for error in field.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        
+                        {% if field.help_text %}
+                            <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+
+            <button class="btn btn-primary btn-register w-100 mt-4" type="submit">
+                Register
+            </button>
+        </form>
+
+        <p class="text-center mt-4 login-link">
+            Already have an account? 
+            <a href="{% url 'login' %}">Login here</a>
+        </p>
+
+    </div>
+</div>
+
+{% endblock content %}

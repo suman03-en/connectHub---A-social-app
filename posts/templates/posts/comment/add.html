@@ -1,0 +1,207 @@
+<style>
+    /* * --- GLOBAL CONTAINER STYLING ---
+    */
+    .outer {
+        max-width: 600px;
+        height: 600px; /* Fixed height for the entire component */
+        margin: 20px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: #f8f8f8;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        font-family: Arial, sans-serif;
+        display: flex; 
+        flex-direction: column; 
+    }
+
+    .comments_header {
+        padding: 15px;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 2px solid #eee;
+        flex-shrink: 0; 
+        display: flex; /* Added flex to align title and close button (if present) */
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* * --- SCROLLABLE COMMENT LISTING (FLEX GROWN) ---
+    */
+    .list_comment {
+        flex-grow: 1; /* **Crucial:** Allows this area to take up all remaining space */
+        overflow-y: auto; /* **Crucial:** Enables independent vertical scrolling */
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Individual Comment Presentation */
+    .comment_item {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        background-color: #ffffff;
+        border-left: 4px solid #007bff;
+        border-radius: 4px;
+        font-size: 15px;
+        line-height: 1.4;
+    }
+    
+    /* New: Container for Author/Time and Delete Button (from previous steps) */
+    .comment_header_meta {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed #eee; /* Moved HR styling here */
+        margin-bottom: 5px; /* Spacing between header/meta and content */
+    }
+    
+    .comment_content {
+        color: #444;
+        margin-bottom: 5px;
+    }
+
+    /* New: Author and Time Styling (updated) */
+    .comment_meta {
+        display: block;
+        font-size: 0.85em;
+        color: #777;
+        /* Removed padding/margin/border tops as they are handled by .comment_header_meta */
+    }
+    
+    .comment_meta strong {
+        color: #333;
+    }
+
+    .no_comments_message {
+        padding: 10px;
+        text-align: center;
+        color: #888;
+        font-style: italic;
+    }
+
+    /* * --- FIXED COMMENT BOX (FLEX SHRUNK) ---
+    */
+    .comment_box {
+        padding: 15px;
+        background-color: #fff; /* White background to stand out */
+        border-top: 1px solid #ccc;
+        flex-shrink: 0; /* **Crucial:** Prevents this area from shrinking */
+    }
+
+    .comment_box h3 {
+        margin-top: 0;
+        color: #555;
+        font-size: 1.1em;
+    }
+    
+    /* Form field styling (simplified for brevity) - These are your custom styles that will now apply! */
+    .comment_box textarea { /* Explicitly target textarea for comment content */
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box; 
+        font-size: 15px;
+        margin-bottom: 10px; /* Reduced margin to fit better with the button */
+        resize: vertical;
+    }
+    
+    /* Form Button styling */
+    .comment_box button[type="submit"] {
+        width: 100%;
+        padding: 12px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        margin-top: 5px; /* Added spacing above button */
+    }
+    
+    .comment_box button[type="submit"]:hover {
+        background-color: #218838;
+    }
+
+    /* Delete Button Styling */
+    .delete_button {
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 0.85em;
+        cursor: pointer;
+        padding: 5px;
+        transition: color 0.2s;
+    }
+    
+    .delete_button:hover {
+        color: #bd2130;
+    }
+
+    /* Style for field errors */
+    .field-error {
+        color: #dc3545;
+        font-size: 0.8em;
+        margin-top: -5px;
+        margin-bottom: 10px;
+        display: block;
+    }
+    
+</style>
+
+<div class="outer">
+    <div class="comments_header">
+        Comments ({% if post.comments.count %}{{ post.comments.count }}{% else %}0{% endif %})
+    </div>
+    
+    <div class="list_comment">
+        {% for comment in post.comments.all %}
+        <div class="comment_item">
+            
+            <div class="comment_header_meta">
+                <span class="comment_meta">
+                    Comment by <strong>{{ comment.author.username }}</strong> on {{ comment.created_at|date:"M d, Y, h:i A" }}
+                </span>
+
+                {% if request.user == comment.author %}
+                <a href="{% url "delete_comment" comment.id %}" class="delete_button">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="comment_content">
+                {{ comment.text|linebreaksbr }} 
+            </div>
+        </div>
+        {% empty %}
+        <div class="no_comments_message">
+            <p>No comments yet. Be the first to add one!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="comment_box">
+        <h3>Add Your Comment</h3>
+        <form action="{% url "add_comment" post.id %}" method="post" id="comment-form-{{ post.id }}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+
+            {% if form.text.errors %}
+                <span class="field-error">{{ form.text.errors|striptags }}</span>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <span class="field-error">{{ form.non_field_errors|striptags }}</span>
+            {% endif %}
+            
+            <button type="submit">Submit Comment</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}
+    Login
+{% endblock title %}
+
+{% block content %}
+
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 50px auto;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 18px;
+        padding: 35px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .login-card h2 {
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* Input styling */
+    .form-group-custom {
+        margin-bottom: 22px;
+    }
+
+    label {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: block;
+        color: #333;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: 0.2s ease;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13,110,253,0.15);
+    }
+
+    .login-container a {
+        color: #0d6efd;
+        text-decoration: none;
+    }
+    .login-container a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+
+        <h2>Login</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group-custom">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary w-100 mt-2">
+                Login
+            </button>
+        </form>
+
+        <p class="text-center mt-3">
+            <a href="{% url 'password_reset' %}">
+                Forgot your password?
+            </a>
+        </p>
+    </div>
+</div>
+
+{% endblock content %}
