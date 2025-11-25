@@ -27,6 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/',include('accounts.urls')),
     path('posts/',include('posts.urls')),
+    path('chat/',include('chat.urls')),
 ] + debug_toolbar_urls()
 
 if settings.DEBUG :
