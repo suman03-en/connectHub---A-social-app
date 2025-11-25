@@ -34,6 +34,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,6 +77,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'connecthub.wsgi.application'
+
+ASGI_APPLICATION = "connecthub.asgi.application"
 
 
 # Database
