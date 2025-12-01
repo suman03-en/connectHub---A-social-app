@@ -6,7 +6,7 @@ from .forms import CustomRegistrationForm,CustomLoginForm,PasswordResetForm,Prof
 from .models import CustomUser
 from posts.models import Post,Like
 
-from django.contrib.auth import get_user,get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.db.models import Exists,OuterRef
@@ -16,6 +16,8 @@ from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
+
+from chat.models import Room
 
 CustomUser = get_user_model()
 def register(request):
@@ -108,6 +110,7 @@ def profile(request,username):
     profile_user = get_object_or_404(CustomUser,username=username)
     current_user = request.user
     is_following=None
+    room_name = Room.generate_room_name(sender=profile_user,receiver=current_user)
     if current_user.is_following(profile_user):
         is_following = True
     posts =profile_user.posts.all().order_by('-created_at')
@@ -117,7 +120,8 @@ def profile(request,username):
         {
             'profile_user':profile_user,
             'is_following':is_following,
-            'posts':posts
+            'posts':posts,
+            'room_name':room_name
         }
     )
 

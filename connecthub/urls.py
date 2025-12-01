@@ -23,7 +23,7 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from accounts.views import feed
 
 urlpatterns = [
-    path("",feed,name="feed"),
+    path("feed/",feed,name="feed"),
     path('admin/', admin.site.urls),
     path('accounts/',include('accounts.urls')),
     path('posts/',include('posts.urls')),
