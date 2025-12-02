@@ -36,7 +36,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     "daphne",
     "channels",
-<<<<<<< HEAD
     'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,16 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'posts',
-=======
-    "accounts",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "posts",
->>>>>>> chatapp
     "debug_toolbar",
     "easy_thumbnails",
     "chat",
@@ -89,14 +78,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "connecthub.wsgi.application"
-
-<<<<<<< HEAD
 ASGI_APPLICATION = "connecthub.asgi.application"
-
-=======
-# Channels
-ASGI_APPLICATION = "connecthub.asgi.application"
->>>>>>> chatapp
 
 CHANNEL_LAYERS = {
     "default": {
