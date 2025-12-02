@@ -158,6 +158,10 @@
                                 {% if is_following %}Unfollow{% else %}Follow{% endif %}
                             </button>
                         </form>
+
+                        <a href="{% url 'room' room_name %}" class="btn btn-outline-secondary btn-round">
+                             Message
+                        </a>
                     {% elif request.user == profile_user %}
                         <a href="{% url 'profile_edit' %}" class="btn btn-outline-secondary btn-round">
                             <i class="bi bi-gear me-1"></i> Edit Profile

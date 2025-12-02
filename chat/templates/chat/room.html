@@ -1,0 +1,178 @@
+{% extends "accounts/base.html" %}
+{% block content %}
+
+    <style>
+        /* Styles for the message container */
+        .message-bubble {
+            padding: 8px 12px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            max-width: 70%; /* Limit bubble width */
+            clear: both; /* Ensures alignment works correctly */
+        }
+
+        /* Current User's (Sender) Message - Right Alignment, Blue Background */
+        .side-right {
+            background-color: #007bff; /* Primary Blue */
+            color: white;
+            float: right; /* Align to the right */
+            margin-left: auto; /* Push to the right */
+        }
+
+        /* Other User's (Receiver) Message - Left Alignment, Light Gray Background */
+        .side-left {
+            background-color: #e9ecef; /* Light Gray */
+            color: #212529; /* Dark text */
+            float: left; /* Align to the left */
+            margin-right: auto; /* Push to the left */
+        }
+        
+        /* Ensure the chat log clears floats to maintain proper scroll behavior */
+        #chat::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    /* General container to center or group elements */
+        .chat-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            max-width: 600px;
+            margin: 20px auto; /* Centers the container on the page */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style for the main text input field */
+        .chat-input {
+            width: 100%; /* Makes the input take the full width of its container */
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff; /* Highlight border on focus */
+            outline: none; /* Remove default focus outline */
+        }
+
+        /* Style for the Send button */
+        .chat-send-button {
+            background-color: #007bff; /* Primary blue color */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+            /* Optional: Float to the right for a common chat layout */
+            float: right;
+        }
+
+        .chat-send-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .chat-send-button:active {
+            transform: translateY(1px); /* Slight press effect */
+        }
+
+        /* Style for the error message paragraph */
+        .chat-error-message {
+            /* The 'color: red' is already in your HTML style, but it's better to manage it here */
+            color: #dc3545; /* Bootstrap-like red for errors */
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 5px;
+            min-height: 20px; /* Reserves space so elements don't jump when an error appears */
+            clear: both; /* Clear the float from the button */
+        }
+    </style>
+
+    <div id="chat" style="height: 400px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;">
+        {% for msg in latest_messages %}
+        <div class="message-bubble {% if msg.sender == request.user %}side-right{% else %}side-left{% endif %}">
+            <strong>{{ msg.sender.username }}:</strong> {{ msg.message }}
+        </div>
+        {% endfor %}
+    </div>
+    
+<div class="chat-container">
+    <input id="chat-message-input" type="text" size="100" class="chat-input"><br>
+    <input id="chat-message-submit" type="button" value="Send" class="chat-send-button">
+    <p id='error-message' class="chat-error-message" style="color: red;"></p>
+</div>
+    
+    {{ room_name|json_script:"room-name"}}
+    {{ request.user.username|json_script:"user-username" }} 
+{% endblock content %}
+
+{% block domready %}
+    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+    const currentUsername = JSON.parse(document.getElementById('user-username').textContent);
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + roomName 
+        + '/'
+    );
+
+    chatSocket.onmessage = function(e){
+        const data = JSON.parse(e.data);
+        const chatLog = document.querySelector('#chat');
+        let messageClass;
+        let senderLabel;
+        
+        // Determine alignment and label based on sender
+        if (data.username === currentUsername) {
+            messageClass = 'side-right';
+            senderLabel = currentUsername;
+        } else {
+            messageClass = 'side-left';
+            senderLabel = data.username;
+        }
+
+        // 💡 Change: Added 'message-bubble' class for consistent styling
+        chatLog.innerHTML += `<div class="message-bubble ${messageClass}"><strong>${senderLabel}:</strong> ${data.message}</div>`;
+        
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    chatSocket.onclose = function(e){
+        console.error("Chat socket closed unexpectedly");
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.key === 'Enter') { 
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e){
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const errorElement = document.querySelector('#error-message');
+
+        const message = messageInputDom.value.trim();
+        if(message === ""){
+            errorElement.innerHTML = "You can send empty message";
+            messageInputDom.focus()
+        }else{
+        chatSocket.send(JSON.stringify(
+            {
+                'message': message
+            }
+        ));
+        errorElement.innerHTML = "";
+        messageInputDom.value = "";
+        }
+    };
+{% endblock domready %}
