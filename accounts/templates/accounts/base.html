@@ -124,5 +124,14 @@
         © {% now "Y" %} connectHub — All rights reserved. Built with ❤️.
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded',(event)=>{
+            //DOMContentLoaded
+            {% block domready %}
+            
+            {% endblock domready %}
+
+        })
+    </script>
 </body>
 </html>
