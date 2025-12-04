@@ -177,7 +177,7 @@
 <div class="container my-5">
     <div class="row justify-content-center">
 
-        {% for post in posts %}
+    {% for post in posts %}
         <div class="col-12 col-md-9 col-lg-7 mb-4">
             <div class="card post-card shadow-sm" id="post-card-{{ post.pk }}">
 
@@ -252,23 +252,26 @@
                 {% endif %}
 
                 <div class="likes-count">
-                    <small class="text-muted fw-bold">{{ post.likes_count }} Likes</small>
+                    <small class="text-muted fw-bold" id="like-count-{{post.id}}">{{ post.likes_count }} Likes</small>
                 </div>
 
                 <div class="card-actions">
-                    <form action="{% url 'like_action' post.id %}" method="POST" class="like-form">
-                        {% csrf_token %}
-                        {% if post.is_liked_by_user %}
-                            <input type="hidden" name="action" value="unlike">
-                            <button type="submit" class="like-button-content text-primary">
-                                <i class="bi bi-hand-thumbs-up-fill"></i> Unlike
-                            </button>
-                        {% else %}
-                            <input type="hidden" name="action" value="like">
-                            <button type="submit" class="like-button-content">
-                                <i class="bi bi-hand-thumbs-up"></i> Like</button>
-                        {% endif %}
-                    </form>
+                    <button 
+                        type="button" 
+                        class="like-button-content {% if post.is_liked_by_user %}text-primary{% endif %}"
+                        id="like-btn-{{ post.id }}"
+                        data-post-id="{{ post.id }}"
+                        data-action="{% if post.is_liked_by_user %}unlike{% else %}like{% endif %}"
+                        data-url="{% url 'like_action' %}"
+                        onclick="toggleLike(this)">
+                        
+                        <i class="bi {% if post.is_liked_by_user %}bi-hand-thumbs-up-fill{% else %}bi-hand-thumbs-up{% endif %}" 
+                           id="like-icon-{{ post.id }}"></i> 
+                        
+                        <span id="like-text-{{ post.id }}">
+                            {% if post.is_liked_by_user %}Unlike{% else %}Like{% endif %}
+                        </span>
+                    </button>
 
                     <button 
                         type="button" 
@@ -287,15 +290,93 @@
             <div class="inline-comment-container" id="comment-container-{{ post.pk }}">
                 </div>
         </div>
-        {% endfor %}
+    {% endfor %}
 
     </div>
 </div>
 
 <script>
+    // --- CSRF Helper Function (Required for Django POST requests) ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // --- AJAX LIKE/UNLIKE FUNCTION ---
+    function toggleLike(button) {
+        // Get data from the button's attributes
+        const postId = button.getAttribute('data-post-id');
+        const action = button.getAttribute('data-action'); // 'like' or 'unlike'
+        const url = button.getAttribute('data-url');
+        
+        // Find UI elements to update using unique IDs
+        const countElement = document.getElementById(`like-count-${postId}`);
+        const iconElement = document.getElementById(`like-icon-${postId}`);
+        const textElement = document.getElementById(`like-text-${postId}`);
+
+        // Prepare Form Data - Sending 'id' in the body
+        const formData = new FormData();
+        formData.append('id', postId); // <--- POST ID is sent here!
+        formData.append('action', action); 
+
+        // Perform the AJAX request
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest' ,
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Data expected from the Django view: { "success": true, "likes_count": 55 }
+            if (data.success) {
+                const isLiking = (action === 'like');
+                
+                // 1. Update the Like Count
+                if (countElement) {
+                    countElement.innerText = `${data.likes_count} Likes`;
+                }
+
+                // 2. Update the Button State (Icon, Text, Color, and data-action)
+                if (isLiking) {
+                    // Successful 'like' -> change button state to 'unlike'
+                    button.setAttribute('data-action', 'unlike');
+                    button.classList.add('text-primary'); 
+                    iconElement.classList.remove('bi-hand-thumbs-up');
+                    iconElement.classList.add('bi-hand-thumbs-up-fill');
+                    textElement.innerText = 'Unlike';
+                } else {
+                    // Successful 'unlike' -> change button state to 'like'
+                    button.setAttribute('data-action', 'like');
+                    button.classList.remove('text-primary'); 
+                    iconElement.classList.remove('bi-hand-thumbs-up-fill');
+                    iconElement.classList.add('bi-hand-thumbs-up');
+                    textElement.innerText = 'Like';
+                }
+            } else {
+                console.error("AJAX failed but returned success: false or invalid status.");
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error during like action:', error);
+            alert('An error occurred while processing your request.');
+        });
+    }
+
     // --- Existing Read More/Less Functions ---
     function toggleDescription(postId) {
-        // ... (Code is unchanged)
         const descText = document.getElementById(`desc-text-${postId}`);
         const readMoreBtn = document.getElementById(`read-more-${postId}`);
         
@@ -309,7 +390,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (Code is unchanged)
         document.querySelectorAll('.description-text').forEach(descText => {
             const clone = descText.cloneNode(true);
             clone.classList.remove('compact');
@@ -333,27 +413,17 @@
         });
     });
 
-    // --- NEW Inline Comment Toggle Function ---
-
-    /**
-     * Loads the comment box content via AJAX and displays it inline 
-     * immediately below the post card.
-     * @param {HTMLElement} element - The button element that was clicked.
-     * @param {string} commentUrl - The Django URL to fetch the comment form/list snippet.
-     */
+    // --- Existing Inline Comment Toggle Function ---
     function toggleInlineComment(element, commentUrl) {
         const postId = element.getAttribute('data-post-id');
         const commentContainer = document.getElementById(`comment-container-${postId}`);
         
-        // 1. Check if the container is currently visible
         if (commentContainer.style.display === 'block') {
-            // Toggle off: Hide the container and clear content
             commentContainer.style.display = 'none';
             commentContainer.innerHTML = ''; 
             return;
         }
 
-        // 2. Hide all other open comment containers
         document.querySelectorAll('.inline-comment-container').forEach(otherContainer => {
             if (otherContainer.id !== `comment-container-${postId}`) {
                 otherContainer.style.display = 'none';
@@ -361,7 +431,6 @@
             }
         });
 
-        // 3. Show loading state and the container
         commentContainer.style.display = 'block';
         commentContainer.innerHTML = `
             <div class="loading-comment-box">
@@ -369,26 +438,20 @@
             </div>
         `;
         
-        // Inject spin animation CSS temporarily
         const style = document.createElement('style');
         style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } .spin { animation: spin 2s linear infinite; }';
         document.head.appendChild(style);
 
-        // 4. Fetch the comment box content
         fetch(commentUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load comment box.');
                 }
-                // Expecting the response to be the HTML snippet of the comment box
                 return response.text(); 
             })
             .then(html => {
-                // 5. Inject the content
                 commentContainer.innerHTML = html;
-                document.head.removeChild(style); // Remove temporary CSS
-                
-                // OPTIONAL: Scroll the window to the top of the comment box if it's off-screen
+                document.head.removeChild(style);
                 commentContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             })
             .catch(error => {

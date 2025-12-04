@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
-from debug_toolbar.toolbar import debug_toolbar_urls
 
 from accounts.views import feed
 
@@ -28,7 +27,7 @@ urlpatterns = [
     path('accounts/',include('accounts.urls')),
     path('posts/',include('posts.urls')),
     path('chat/',include('chat.urls')),
-] + debug_toolbar_urls()
+]
 
 if settings.DEBUG :
     urlpatterns += static(

@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect,get_object_or_404
-from django.urls import reverse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user
 from django.db.models import F
+
 from .models import Post,Like,Comment
 from .forms import PostCreationForm,CommentCreateForm
 
@@ -62,10 +63,12 @@ def list_post(request):
 
 @login_required(login_url='login')
 @require_POST
-def like_action(reqeust,post_id):
+def like_action(request):
+    post_id = request.POST.get('id')
     post = get_object_or_404(Post,id=post_id)
-    current_user = reqeust.user
-    action = reqeust.POST['action']
+    current_user = request.user
+    action = request.POST.get('action')
+
 
     if action == 'like':
         created = Like.objects.filter(post=post,user=current_user).exists()
@@ -75,15 +78,17 @@ def like_action(reqeust,post_id):
 
         
     elif action == 'unlike':
-        try:
-            deleted_count, _ = Like.objects.filter(post=post,user=current_user).delete()
-            if deleted_count > 0:
-                Post.objects.filter(id=post.id).update(likes_count=F('likes_count') - 1)
+        deleted_count, _ = Like.objects.filter(post=post,user=current_user).delete()
+        if deleted_count > 0:
+            Post.objects.filter(id=post.id).update(likes_count=F('likes_count') - 1)
 
-        except Like.DoesNotExist:
-            pass
-
-    return redirect('feed')
+    post.refresh_from_db()
+    likes_count = post.likes_count
+    
+    return JsonResponse({
+        "success": True,
+        "likes_count": likes_count
+    })
 
 
 
