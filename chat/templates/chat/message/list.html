@@ -1,0 +1,46 @@
+{% extends "accounts/base.html" %}
+{% load chat_extra %}
+{% block title %}
+    Message Inbox
+{% endblock title %} 
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-envelope-fill me-2"></i>Inbox
+                    </h3>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for room in user_rooms %}
+                            <a href="{% url 'room' room.name %}" 
+                               class="list-group-item list-group-item-action py-3 d-flex justify-content-between align-items-center border-start-0 border-end-0">
+                                <div>
+                                    <span class="fw-bold text-dark">
+                                        {{room.name}}: {{room.participants.all|to_string:request.user.username}}
+                                    </span>
+                                    <p class="text-muted small mb-0">Click to enter this conversation</p>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">View</span>
+                            </a>
+                        {% empty %}
+                            <div class="p-5 text-center">
+                                <p class="text-muted">No messages found in your inbox.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white text-end py-2">
+                    <small class="text-muted">Logged in as {{ user.username }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
